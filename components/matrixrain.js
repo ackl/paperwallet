@@ -11,7 +11,8 @@ const MatrixRain = () => {
 
         const fontSize = 16;
         const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
+        const drops = Array.from({ length: Math.floor(columns) }, () => Math.floor(Math.random() * -100));
+
 
         function getRandomChar() {
             const n = Math.random();
