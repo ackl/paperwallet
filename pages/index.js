@@ -11,6 +11,8 @@ export default function Home() {
       <Head>
         <title>Cold Wallet Generator</title>
         <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0" />
+
       </Head>
 
       <main>
