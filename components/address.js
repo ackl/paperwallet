@@ -43,8 +43,8 @@ export default function Address() {
       <section>
         <h1> Generate a BTC paper wallet (segwit) </h1>
         <button className="generate-button" onClick={generate}>generate again </button>
-        <p>click the boxes to copy</p>
-        <p>click the qr code to enlarge</p>
+        <p className="label-copy"><span></span>  the boxes to copy</p>
+        <p className="label-qr"> <span></span> the qr code to enlarge</p>
 
         <div className="result">
           <h4>seed words:</h4>

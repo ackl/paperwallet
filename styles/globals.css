@@ -189,3 +189,26 @@ p {
 .generate-button {
   margin-bottom: 1rem;
 }
+
+.label-copy span::before,
+.label-qr span::before {
+  display: inline-block;
+}
+
+.label-copy span::before {
+  content: 'press'
+}
+
+.label-qr span::before {
+  content: 'press'
+}
+
+@media screen and (min-width: 767px) {
+  .label-copy span::before {
+    content: 'click'
+  }
+
+  .label-qr span::before {
+    content: 'hover'
+  }
+}
