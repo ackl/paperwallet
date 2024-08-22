@@ -39,14 +39,39 @@ export default function Address() {
 
   function copy(ev) {
     const copyText = ev.target;
-    // Copy the text inside the text field
-    navigator.clipboard.writeText(copyText.value)
-      .then(() => {
-        copyText.parentElement.classList.add('copied')
-      })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
-      });
+
+    function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            const msg = successful ? 'successful' : 'unsuccessful';
+            console.log('Fallback: Copying text command was ' + msg);
+            copyText.parentElement.classList.add('copied'); // Adding the 'copied' class on success
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(copyText.value)
+            .then(() => {
+                copyText.parentElement.classList.add('copied');
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+                fallbackCopyTextToClipboard(copyText.value);
+            });
+    } else {
+        // Directly using the fallback if Clipboard API is not available
+        fallbackCopyTextToClipboard(copyText.value);
+    }
   }
 
   function mouseLeaveHandler(ev) {
@@ -87,7 +112,7 @@ export default function Address() {
         </div>
       </section>
       <MatrixRain />
-      <button className="print" onClick={print}>🖶</button>
+      <button className="print" onClick={print}>🖨️</button>
     </>
   );
 }
