@@ -1,8 +1,9 @@
-import Head from "next/head";
 import * as bitcoin from "bitcoinjs-lib";
 import * as bip39 from "bip39";
 import * as crypto from "crypto-browserify";
 import MatrixRain from './matrixrain';
+import AutoResizeTextArea from './autoresizetextarea';
+import QRCode from 'react-qr-code';
 import { useState, useEffect } from "react";
 
 const NETWORK = bitcoin.networks.bitcoin;
@@ -37,77 +38,45 @@ export default function Address() {
     setRandomBytes(crypto.randomBytes(16)); // 128 bits is enough
   }
 
-  function copy(ev) {
-    const copyText = ev.target;
-
-    function fallbackCopyTextToClipboard(text) {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-            const successful = document.execCommand('copy');
-            const msg = successful ? 'successful' : 'unsuccessful';
-            console.log('Fallback: Copying text command was ' + msg);
-            copyText.parentElement.classList.add('copied'); // Adding the 'copied' class on success
-        } catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
-        }
-
-        document.body.removeChild(textArea);
-    }
-
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(copyText.value)
-            .then(() => {
-                copyText.parentElement.classList.add('copied');
-            })
-            .catch(err => {
-                console.error('Failed to copy text: ', err);
-                fallbackCopyTextToClipboard(copyText.value);
-            });
-    } else {
-        // Directly using the fallback if Clipboard API is not available
-        fallbackCopyTextToClipboard(copyText.value);
-    }
-  }
-
-  function mouseLeaveHandler(ev) {
-    ev.target.parentElement.classList.remove('copied');
-  }
-
   return (
     <>
       <section>
-        <h1> Generate a paper wallet (segwit) </h1>
-        <button onClick={generate}>generate again </button>
+        <h1> Generate a BTC paper wallet (segwit) </h1>
+        <button className="generate-button" onClick={generate}>generate again </button>
         <p>click the boxes to copy</p>
+        <p>click the qr code to enlarge</p>
 
         <div className="result">
           <h4>seed words:</h4>
           <div className="container">
-            <textarea
-              name="text"
-              rows="2"
-              cols="10"
-              wrap="soft"
-              onClick={copy}
-              value={mnemonic}
-              readOnly
-              onMouseOut={mouseLeaveHandler}
-            ></textarea>
+            <AutoResizeTextArea value={mnemonic}
+            />
             <p className="popup-info">Text copied to clipboard</p>
+            <div className="qrcode-wrapper">
+              <QRCode
+                size={256}
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                value={mnemonic}
+                viewBox={`0 0 256 256`}
+              />
+            </div>
           </div>
         </div>
 
 
         <div className="result">
           <h4>address:</h4>
-          <div className="container" onMouseOut={mouseLeaveHandler}>
-            <textarea name="text" rows="2" cols="10" wrap="soft" onClick={copy} value={address} readOnly></textarea>
+          <div className="container">
+            <AutoResizeTextArea value={address} />
             <div className="popup-info">Text copied to clipboard</div>
+            <div className="qrcode-wrapper">
+              <QRCode
+                size={256}
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                value={address}
+                viewBox={`0 0 256 256`}
+              />
+            </div>
           </div>
         </div>
       </section>
