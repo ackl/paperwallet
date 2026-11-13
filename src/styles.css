@@ -1,0 +1,519 @@
+:root {
+  /* Green on black, in tiers. Contrast ratios are against --bg.
+
+     text    --text-strong  18:1  the data itself: seed words, addresses
+             --green         8:1  the brand voice: title, labels, actions
+             --text-muted   6.7:1 supporting: hints, paths, unticked options
+     ground  --bg                 page
+             --surface            raised panel (chain picker)
+             --field              sunken well that holds data
+     edges   --line          3:1  control outlines
+             --line-soft          decorative panel outline
+  */
+  --bg: #060906;
+  --surface: #0c120cd9;
+  --field: #030503e6;
+  --green: #03be00;
+  --green-bright: #2fd92b;
+  --green-deep: #027d00;
+  --text-strong: #d9ffd6;
+  --text-muted: #6aa367;
+  --line: #357832;
+  --line-soft: #1d441b;
+  --glow: 0 0 18px -7px #71df6f;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* spacing: tight inside a block, loose between blocks */
+  --space-1: 0.375rem; /* label to its field */
+  --space-2: 0.75rem; /* siblings inside a block */
+  --space-3: 1.25rem; /* one address to the next */
+  --space-4: 1.75rem; /* between blocks: actions, seed, picker, addresses */
+  --qr: 64px;
+
+  color-scheme: dark;
+  scrollbar-color: var(--green-deep) var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* 100%, not 16px: inherits the reader's browser text size (16px unless they
+     changed it), and every rem below scales with it. A px root would
+     override their setting. */
+  font-size: 100%;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Space Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--green);
+  background: var(--bg);
+}
+
+body {
+  touch-action: pan-x pan-y;
+}
+
+::selection {
+  color: #000;
+  background: var(--green);
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+
+main {
+  min-height: 100dvh;
+  /* top-anchored, never vertically centred: ticking a chain changes the
+     page height, and centring would slide the checkbox out from under you */
+  padding: clamp(1rem, 4vh, 2.5rem) 1rem 2rem;
+}
+
+section {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.setup,
+.addresses {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+
+.setup {
+  gap: var(--space-4);
+}
+
+.addresses {
+  gap: var(--space-3);
+}
+
+/* Wide screens: choices on the left stay put while the addresses they
+   produce scroll on the right. DOM order is unchanged. */
+@media screen and (min-width: 64rem) {
+  section {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 34rem);
+    column-gap: 3rem;
+    max-width: 63rem;
+  }
+}
+
+@media screen and (min-width: 64rem) and (min-height: 36rem) {
+  .setup {
+    position: sticky;
+    top: clamp(1rem, 4vh, 2.5rem);
+    align-self: start;
+  }
+}
+
+canvas {
+  display: block;
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  width: 100dvw;
+  opacity: 0.22;
+  z-index: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  text-wrap: balance;
+}
+
+@media screen and (min-width: 48rem) {
+  h1 {
+    font-size: 1.6rem;
+  }
+}
+
+p {
+  margin: 0;
+}
+
+/* --- buttons --------------------------------------------------------------- */
+
+.btn {
+  padding: 0.5rem 0.875rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--green);
+  background: #000;
+  border: none;
+  border-bottom: 3px solid var(--green);
+  border-radius: 4px;
+  box-shadow: var(--glow);
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    background: #091a09;
+  }
+}
+
+.btn:active {
+  background: var(--green);
+  color: #000;
+}
+
+/* the one primary action on the page */
+.btn-primary {
+  color: #021202;
+  background: var(--green);
+  border-bottom-color: var(--green-deep);
+}
+
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: var(--green-bright);
+  }
+}
+
+.btn-primary:active {
+  color: var(--green);
+  background: #000;
+  border-bottom-color: var(--green);
+}
+
+/* title, actions and hints read as one block */
+header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  /* stretch (the default) makes the icon button as tall as its neighbour */
+  gap: var(--space-2);
+}
+
+.print {
+  display: grid;
+  place-items: center;
+  /* square, as tall as its text-labelled neighbour */
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+.print svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* --- hints ----------------------------------------------------------------- */
+
+.hints {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.label-copy span::before,
+.label-qr span::before {
+  content: "press";
+}
+
+@media (hover: hover) {
+  .label-copy span::before {
+    content: "click";
+  }
+
+  .label-qr span::before {
+    content: "hover";
+  }
+}
+
+/* --- results --------------------------------------------------------------- */
+
+h4 {
+  /* tight: the label belongs to the box under it */
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+}
+
+h4 small {
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* an address and its QR code are one object: side by side, not stacked */
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.copy-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.copy-field textarea {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  overflow-y: hidden;
+  resize: none;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text-strong);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .copy-field textarea:hover {
+    border-color: var(--green);
+  }
+}
+
+.copy-field textarea:focus-visible {
+  outline-offset: 0;
+}
+
+/* the seed words are the secret everything else derives from */
+.setup .copy-field textarea {
+  border-color: var(--green);
+}
+
+/* "copied" tab that slides up from behind the field's top-right corner */
+.popup-info {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #000;
+  background: var(--green);
+  opacity: 0;
+  transform: translateY(0);
+  transition:
+    transform 0.3s var(--ease-out),
+    opacity 0.3s var(--ease-out);
+  pointer-events: none;
+}
+
+.copy-field.copied .popup-info {
+  opacity: 1;
+  transform: translateY(-100%);
+}
+
+.qrcode-wrapper {
+  position: relative;
+  z-index: 3;
+  display: block;
+  flex: none;
+  width: var(--qr);
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: zoom-in;
+  /* grows down and to the left, staying inside the column */
+  transform-origin: top right;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.qrcode-wrapper svg {
+  display: block;
+}
+
+.qrcode-wrapper[aria-pressed="true"] {
+  z-index: 4;
+  transform: scale(3);
+  cursor: zoom-out;
+}
+
+@media (hover: hover) {
+  .qrcode-wrapper:hover {
+    z-index: 4;
+    transform: scale(3);
+  }
+}
+
+.empty {
+  color: var(--text-muted);
+}
+
+/* --- chain picker ---------------------------------------------------------- */
+
+.options {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-2);
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px dashed var(--line-soft);
+  container-type: inline-size;
+}
+
+.options legend {
+  padding-inline: 6px;
+  color: var(--text-muted);
+}
+
+.chains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+}
+
+/* enough room for two aligned columns; below that, wrap to stay compact */
+@container (min-width: 22rem) {
+  .chains {
+    display: grid;
+    /* first column sized to its longest name so "Bitcoin nested segwit"
+       never wraps onto a second line */
+    grid-template-columns: max-content 1fr;
+    column-gap: 1.5rem;
+  }
+
+  .chains label {
+    white-space: nowrap;
+  }
+}
+
+.options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  /* padding, not gap, between rows so the whole row height is tappable */
+  padding-block: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s var(--ease-out);
+}
+
+.options label:has(:checked),
+.options label:hover {
+  color: var(--green);
+}
+
+.options input {
+  margin: 0;
+  accent-color: var(--green);
+}
+
+.options input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+}
+
+.options .index {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--line-soft);
+  /* full-width rule, but only the label itself is clickable */
+  display: flex;
+}
+
+.options input[type="number"] {
+  width: 4.5em;
+  padding: 2px 6px;
+  font: inherit;
+  /* >= 16px stops iOS zooming the page on focus; 1rem is 16px by default */
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- paper ----------------------------------------------------------------- */
+
+@media print {
+  html,
+  body {
+    color: #000;
+    background: #fff;
+  }
+
+  canvas,
+  section h1,
+  .actions,
+  .hints,
+  .empty,
+  .options {
+    display: none;
+  }
+
+  :root {
+    --qr: 96px;
+  }
+
+  main {
+    min-height: 0;
+    padding: 0;
+  }
+
+  section {
+    display: block;
+    max-width: none;
+  }
+
+  .setup {
+    position: static;
+    display: block;
+    margin-bottom: var(--space-3);
+  }
+
+  h4 small,
+  .copy-field textarea {
+    color: #000;
+    background: none;
+    border-color: #000;
+  }
+
+  /* big enough to scan off paper; hover/zoom state must not leak onto it */
+  .qrcode-wrapper {
+    transform: none !important;
+    /* or a code that was zoomed prints mid-shrink */
+    transition: none;
+  }
+
+  /* whatever was last clicked would otherwise print with a focus ring */
+  :focus-visible {
+    outline: none;
+  }
+
+  .copy-field textarea {
+    border-color: #000 !important;
+  }
+
+  /* keep each seed/address block with its QR code on one page */
+  .result {
+    break-inside: avoid;
+  }
+}
